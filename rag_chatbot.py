@@ -71,7 +71,7 @@ llm = ChatOllama(
 
 
 # ==========================================
-# 7. CHAT BOT
+# 7. INTERACTIVE RAG CHATBOT
 # ==========================================
 
 while True:
@@ -82,16 +82,37 @@ while True:
         print("Goodbye!")
         break
 
+    # --------------------------------------
     # Retrieve relevant chunks
+    # --------------------------------------
+
     results = retriever.invoke(question)
 
+    # --------------------------------------
+    # Display retrieved chunks
+    # --------------------------------------
+
+    print("\n================================")
+    print("RETRIEVED CONTEXT")
+    print("================================")
+
+    for i, document in enumerate(results, start=1):
+        print(f"\n--- Chunk {i} ---")
+        print(document.page_content)
+
+    # --------------------------------------
     # Build context
+    # --------------------------------------
+
     context = "\n\n".join(
         document.page_content
         for document in results
     )
 
+    # --------------------------------------
     # Create prompt
+    # --------------------------------------
+
     prompt = f"""
 You are a document question-answering assistant.
 
@@ -113,80 +134,18 @@ QUESTION:
 ANSWER:
 """
 
+    # --------------------------------------
     # Generate answer
+    # --------------------------------------
+
     response = llm.invoke(prompt)
 
-    print("\nAI:", response.content)
+    # --------------------------------------
+    # Display answer
+    # --------------------------------------
 
-# ==========================================
-# 8. RETRIEVE DOCUMENTS
-# ==========================================
+    print("\n================================")
+    print("FINAL ANSWER")
+    print("================================")
 
-results = retriever.invoke(question)
-
-
-# ==========================================
-# 9. BUILD CONTEXT
-# ==========================================
-
-context = "\n\n".join(
-    document.page_content
-    for document in results
-)
-
-print("\n================================")
-print("RETRIEVED CONTEXT")
-print("================================")
-
-print(context)
-
-# ==========================================
-# 10. CREATE PROMPT
-# ==========================================
-
-prompt = f"""
-You are a document question-answering assistant.
-
-Your task is to answer the user's question using the
-information in the CONTEXT below.
-
-IMPORTANT RULES:
-1. Use the CONTEXT to answer the question.
-2. Do not invent information.
-3. Do not use outside knowledge.
-4. If the answer is clearly present in the CONTEXT,
-   provide the answer directly.
-5. Only say "I don't know based on the provided document"
-   if the answer is genuinely not present.
-
-CONTEXT:
---------------------
-{context}
---------------------
-
-USER QUESTION:
-{question}
-
-ANSWER:
-"""
-
-
-# ==========================================
-# 11. SEND TO LLM
-# ==========================================
-
-response = llm.invoke(prompt)
-
-
-# ==========================================
-# 12. DISPLAY ANSWER
-# ==========================================
-
-print("\n================================")
-print("FINAL ANSWER")
-print("================================")
-
-print(response.content)
-
-print(context)
-print(prompt)
+    print(response.content)
